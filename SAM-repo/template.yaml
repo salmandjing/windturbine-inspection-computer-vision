@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: The serverless services deployment for Amazon Rekognitin Custom Labels for wind turbines blog post
 Parameters:
@@ -46,28 +46,28 @@ Resources:
       MemorySize: 128
       Timeout: 3
       Policies:
-      - Statement:
-        - Sid: MyCustomLabelsLabelsPolicy1
-          Effect: Allow
-          Action:
-          - rekognition:CreateProject
-          - rekognition:CreateProjectVersion
-          - rekognition:StartProjectVersion
-          - rekognition:StopProjectVersion
-          - rekognition:DescribeProjects
-          - rekognition:DescribeProjectVersions
-          - rekognition:DetectCustomLabels
-          - rekognition:DeleteProject
-          - rekognition:DeleteProjectVersion
-          Resource: !Ref CustomLabelsEndpoint
-        - Sid: MyCustomLabelsLabelsPolicy2
-          Effect: Allow
-          Action:
-          - s3:List*
-          - s3:Get*
-          Resource: "*"
-      - DynamoDBWritePolicy:
-          TableName: !Ref MyDynamoDBTable
+        - Statement:
+            - Sid: MyCustomLabelsLabelsPolicy1
+              Effect: Allow
+              Action:
+                - rekognition:CreateProject
+                - rekognition:CreateProjectVersion
+                - rekognition:StartProjectVersion
+                - rekognition:StopProjectVersion
+                - rekognition:DescribeProjects
+                - rekognition:DescribeProjectVersions
+                - rekognition:DetectCustomLabels
+                - rekognition:DeleteProject
+                - rekognition:DeleteProjectVersion
+              Resource: !Ref CustomLabelsEndpoint
+            - Sid: MyCustomLabelsLabelsPolicy2
+              Effect: Allow
+              Action:
+                - s3:List*
+                - s3:Get*
+              Resource: "*"
+        - DynamoDBWritePolicy:
+            TableName: !Ref MyDynamoDBTable
       Environment:
         Variables:
           Confidence_Threshold: 0
@@ -80,7 +80,7 @@ Resources:
           Type: S3
           Properties:
             Bucket: !Ref InputBucket
-            Events: 's3:ObjectCreated:*'
+            Events: "s3:ObjectCreated:*"
   MyDynamodbLambda:
     Type: AWS::Serverless::Function
     Properties:
@@ -91,19 +91,19 @@ Resources:
       MemorySize: 128
       Timeout: 3
       Policies:
-      - DynamoDBReadPolicy:
-          TableName: !Ref MyDynamoDBTable
-      - SNSCrudPolicy:
-          TopicName: !GetAtt MySNSTopic.TopicName
-      - Statement:
-        - Sid: MyDynamodLambdaS3PresignPolicy
-          Effect: Allow
-          Action:
-          - s3:Get*
-          - S3:Create*
-          Resource: 
-          - !GetAtt InputBucket.Arn
-          - !Join [ "/", [ !GetAtt InputBucket.Arn, '*'] ] 
+        - DynamoDBReadPolicy:
+            TableName: !Ref MyDynamoDBTable
+        - SNSCrudPolicy:
+            TopicName: !GetAtt MySNSTopic.TopicName
+        - Statement:
+            - Sid: MyDynamodLambdaS3PresignPolicy
+              Effect: Allow
+              Action:
+                - s3:Get*
+                - S3:Create*
+              Resource:
+                - !GetAtt InputBucket.Arn
+                - !Join ["/", [!GetAtt InputBucket.Arn, "*"]]
       Environment:
         Variables:
           AlarmingLabelList: !Ref MyLabelListToBeNotified
@@ -118,19 +118,19 @@ Resources:
             BatchSize: 1
             Enabled: true
   LambdaInvokePermission1:
-    Type: 'AWS::Lambda::Permission'
+    Type: "AWS::Lambda::Permission"
     Properties:
       FunctionName: !GetAtt MyCustomRekognitionLambda.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 's3.amazonaws.com'
+      Action: "lambda:InvokeFunction"
+      Principal: "s3.amazonaws.com"
       SourceAccount: !Sub ${AWS::AccountId}
       SourceArn: !GetAtt InputBucket.Arn
   LambdaInvokePermission2:
-    Type: 'AWS::Lambda::Permission'
+    Type: "AWS::Lambda::Permission"
     Properties:
       FunctionName: !GetAtt MyDynamodbLambda.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 'dynamodb.amazonaws.com'
+      Action: "lambda:InvokeFunction"
+      Principal: "dynamodb.amazonaws.com"
       SourceAccount: !Sub ${AWS::AccountId}
       SourceArn: !GetAtt OutputTable.Arn
   OutputTable:
@@ -139,15 +139,15 @@ Resources:
       TableName:
         Ref: MyDynamoDBTable
       AttributeDefinitions:
-      - AttributeName: ID
-        AttributeType: S
-      - AttributeName: TimeStamp
-        AttributeType: S
+        - AttributeName: ID
+          AttributeType: S
+        - AttributeName: TimeStamp
+          AttributeType: S
       KeySchema:
-      - AttributeName: ID
-        KeyType: HASH
-      - AttributeName: TimeStamp
-        KeyType: RANGE
+        - AttributeName: ID
+          KeyType: HASH
+        - AttributeName: TimeStamp
+          KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
@@ -160,4 +160,4 @@ Resources:
       Protocol: email
       TopicArn: !Ref MySNSTopic
   MySNSTopic:
-    Type : AWS::SNS::Topic
+    Type: AWS::SNS::Topic
