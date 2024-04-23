@@ -35,7 +35,12 @@ def lambda_handler(event, context):
 
     for record in event['Records']:
         InferenceOutput = json.loads(record['dynamodb']['NewImage']['Inference']['S'])
-        loc = record['dynamodb']['NewImage']['Location']['S']
+        if 'NewImage' in record['dynamodb']:
+            inference_data = record['dynamodb']['NewImage']['Inference']['S']
+            loc = record['dynamodb']['NewImage']['Location']['S']
+        else: 
+            inference_data = record['dynamodb']['OldImage']['Inference']['S']
+            loc = record['dynamodb']['OldImage']['Location']['S']
         link = create_presigned_url(loc)
         inf = 0
         message = ''
